@@ -1,33 +1,29 @@
 {
-  "name": "working-poplar",
+  "name": "working-kotori",
   "version": "0.0.1",
-  "description": "Poplar Server is very cute jobnet control system.",
-  "main": "poplarServer.js",
+  "description": "Kotori Agent is very cute jobnet control system.",
+  "main": "kotoriAgent.js",
   "author": {
     "name": "nr_ck",
     "url": "http://www.cklab.info"
   },
   "dependencies": {
-    "body-parser": "~1.18.2",
-    "cookie-parser": "~1.4.3",
-    "debug": "~2.6.9",
-    "express": "^4.16.2",
-    "jade": "~1.11.0",
-    "morgan": "~1.9.0",
-    "serve-favicon": "~2.4.5",
     "socket.io": "^2.0.4"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./mahiru/mahiruCore"
+    "start": "node ./kotoriAgent.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nrck/PoplarServer.git"
+    "url": "https://github.com/nrck/KotoriAgent.git"
   },
   "license": "Apache-2.0",
   "engines": {
     "node": ">=6.9.0"
+  },
+  "bugs": {
+    "url": "https://github.com/nrck/KotoriAgent/issues"
   }
 }
