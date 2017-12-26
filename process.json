@@ -1,0 +1,12 @@
+{
+    "name": "kotori",
+    "script": "kotoriAgent.js",
+    "node_args" : "",
+    "error_file": "kotori-stderr.log",
+    "out_file": "kotori-stdout.log",
+    "instances": 1,
+    "merge_logs": true,
+    "pid_file": "kotori.pid",
+    "exec_mode": "fork",
+    "autorestart": true
+  }
