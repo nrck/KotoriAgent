@@ -73,6 +73,7 @@ export class ExecJob {
                 this.returnCode = '500';
                 this.exceptionMes = error.message;
                 this.events.emit(Common.EVENT_EXEC_ERROR);
+                Common.trace(Common.STATE_INFO, `ジョブが失敗しました。（execFile：${this.execFile}、RC：${this.returnCode}、ErrorMes：${this.exceptionMes}）`);
 
                 return;
             }
