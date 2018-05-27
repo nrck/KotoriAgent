@@ -61,6 +61,10 @@ export class Common {
     public static EVENT_KILL_JOB = 'KillJob';
     public static EVENT_SCHEDULE_RELOAD = 'ScheduleReload';
 
+    public static EVENT_EXEC_ERROR = 'ExecError';
+    public static EVENT_EXEC_SUCCESS = 'ExecSuccess';
+    public static EVENT_EXEC_KILLED = 'ExecKilled';
+
     public static ENV_SERVER_HOST = 'PoplarServer';
 
     /**
@@ -102,7 +106,6 @@ export class Common {
                     this.trace(this.STATE_ERROR, `The state is undefined. state:${state}, str:${str}`);
                     break;
             }
-
         }
     }
 }

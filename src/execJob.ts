@@ -1,4 +1,4 @@
-import { ChildProcess, exec, execSync } from 'child_process';
+import { ChildProcess, execSync, execFile } from 'child_process';
 import { EventEmitter } from 'events';
 import * as os from 'os';
 import { Common } from './common';
@@ -6,17 +6,19 @@ import { Common } from './common';
 export class ExecJob {
     private _serial: string;
     private _jobcode: string;
-    private _command: string;
+    private _execFile: string;
+    private _args?: string[];
     private _returnCode: string;
     private _exceptionMes: string;
     private process?: ChildProcess;
     private _events: EventEmitter = new EventEmitter();
     private _echorc: string;
 
-    constructor(serial: string, jobcode: string, command: string) {
+    constructor(serial: string, jobcode: string, execFile: string, args?: string[]) {
         this._serial = serial;
         this._jobcode = jobcode;
-        this._command = command;
+        this._execFile = execFile;
+        this._args = args || [];
         this._returnCode = '';
         this._exceptionMes = '';
         this._echorc = os.type().match('Windows_NT') !== null ? 'echo %ERRORLEVEL%' : 'echo $?';
@@ -30,8 +32,12 @@ export class ExecJob {
         return this._jobcode;
     }
 
-    public get command(): string {
-        return this._command;
+    public get execFile(): string {
+        return this._execFile;
+    }
+
+    public get args(): string[] | undefined {
+        return this._args;
     }
 
     public get returnCode(): string {
@@ -60,35 +66,37 @@ export class ExecJob {
 
     /**
      * ジョブの実行
-     * ここはやっぱりexecFileで書き換える
      */
     public exec(): void {
-        // tslint:disable-next-line:no-magic-numbers
-        this.process = exec(this.command, { 'maxBuffer': 400 * 1024 }, (error: Error | null, stdout: string, stderr: string) => {
+        this.process = execFile(this.execFile, this.args, { 'maxBuffer': 400 * 1024 }, (error: Error | null, stdout: string, stderr: string) => {
             if (error !== null) {
                 this.returnCode = '500';
                 this.exceptionMes = error.message;
-                this.events.emit('ExecError');
+                this.events.emit(Common.EVENT_EXEC_ERROR);
 
                 return;
             }
 
             this.returnCode = execSync(this.echorc).toString();
-            this.events.emit('ExecSuccess', stdout, stderr);
+            this.events.emit(Common.EVENT_EXEC_SUCCESS, stdout, stderr);
+            Common.trace(Common.STATE_INFO, `ジョブが成功しました。（execFile：${this.execFile}、RC：${this.returnCode}）`);
             this.process = undefined;
 
         });
-        Common.trace(Common.STATE_INFO, `コマンドを実行しました。（cmd：${this.command}、PID：${this.process.pid}）`);
+        Common.trace(Common.STATE_INFO, `ジョブを実行しました。（execFile：${this.execFile}、PID：${this.process.pid}）`);
     }
 
     public kill(): void {
-        if (typeof this.process === 'undefined') return;
+        if (typeof this.process === 'undefined') {
+            Common.trace(Common.STATE_ERROR, `ジョブはすでに終了しています。（execFile：${this.execFile}）`);
+
+            return;
+        }
         this.process.kill();
         this.returnCode = '-1';
         this.exceptionMes = 'KILL SIGNAL';
-        this.events.emit('ExecKilled');
-        Common.trace(Common.STATE_ERROR, `コマンドを強制終了しました。（cmd：${this.command}、PID：${this.process.pid}）`);
+        this.events.emit(Common.EVENT_EXEC_KILLED);
+        Common.trace(Common.STATE_ERROR, `ジョブを強制終了しました。（execFile：${this.execFile}、PID：${this.process.pid}）`);
         this.process = undefined;
     }
-
 }

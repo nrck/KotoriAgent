@@ -60,7 +60,8 @@ export interface JobJSON {
     agentName: string;
     info: string;
     schedule: RunDate;
-    command: string;
+    file: string;
+    args?: string[];
 }
 
 export interface AgentJSON {
