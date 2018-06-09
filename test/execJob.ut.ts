@@ -21,6 +21,7 @@ describe('ExecJobクラスの単体テスト', () => {
 
     it('すでに終了しているジョブの強制終了', () => {
         chai.assert.doesNotThrow(() => {
+            // tslint:disable-next-line:no-magic-numbers
             setTimeout(() => { exec1.kill(); }, 3000);
         });
     });
