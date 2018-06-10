@@ -104,6 +104,7 @@ export class ClientManager {
      * ソケットを開きます。
      */
     public open(): void {
+        if (this.socket.connected) return;
         this.socket.open();
         Common.trace(Common.STATE_INFO, `ws://${this.serverHost}:${this.port}${this.namespace}に接続を開始しました。`);
     }
@@ -112,6 +113,7 @@ export class ClientManager {
      * クローズします。
      */
     public close(): void {
+        if (this.socket.disconnected) return;
         this.socket.close();
         Common.trace(Common.STATE_INFO, `ws://${this.serverHost}:${this.port}${this.namespace}を切断しました。`);
         this.socket.removeAllListeners();
@@ -174,18 +176,5 @@ export class ClientManager {
 
         return header;
     }
-/*
-    private isMySendJobJson(data: SendJobJSON): boolean {
-        if (data.header.to === this.agentName) return true;
-
-        // 自分じゃないやん
-        data.data.returnCode = '421';
-        data.data.exceptionMes = 'Misdirected Request';
-        this.socket.emit(Common.EVENT_RESULT_JOB, { 'data': data.data, 'header': this.createDataHeader([true, data.header.no], data.header.from, data.header.type) });
-
-        return false;
-
-    }
-    */
 }
 

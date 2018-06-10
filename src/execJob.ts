@@ -1,4 +1,4 @@
-import { ChildProcess, execSync, execFile } from 'child_process';
+import { ChildProcess, execFile, execSync } from 'child_process';
 import { EventEmitter } from 'events';
 import * as os from 'os';
 import { Common } from './common';
@@ -14,10 +14,10 @@ export class ExecJob {
     private _events: EventEmitter = new EventEmitter();
     private _echorc: string;
 
-    constructor(serial: string, jobcode: string, execFile: string, args?: string[]) {
+    constructor(serial: string, jobcode: string, file: string, args?: string[]) {
         this._serial = serial;
         this._jobcode = jobcode;
-        this._execFile = execFile;
+        this._execFile = file;
         this._args = args || [];
         this._returnCode = '';
         this._exceptionMes = '';
@@ -68,6 +68,7 @@ export class ExecJob {
      * ジョブの実行
      */
     public exec(): void {
+        // tslint:disable-next-line:no-magic-numbers
         this.process = execFile(this.execFile, this.args, { 'maxBuffer': 400 * 1024 }, (error: Error | null, stdout: string, stderr: string) => {
             if (error !== null) {
                 this.returnCode = '500';
