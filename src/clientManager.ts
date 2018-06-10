@@ -6,6 +6,7 @@ import { AgentJSON, DataHeaderJSON, HelloJSON, SendJobJSON } from './interface';
 
 export class ClientManager {
     private static CLIENT_CONFIG = './config/config.json';
+    private static CLIENT_PROTOCOL = 'ws';
     private _socket: SocketIOClient.Socket;
     private _serverHost: string;
     private _port: number;
@@ -28,7 +29,7 @@ export class ClientManager {
         this._port = port;
         this._events = new EventEmitter();
         this._namespace = namespace || '/';
-        this._socket = SocketIOClient(`ws://${this.serverHost}:${this.port}${this.namespace}`, { 'autoConnect': false });
+        this._socket = SocketIOClient(`${ClientManager.CLIENT_PROTOCOL}://${this.serverHost}:${this.port}${this.namespace}`, { 'autoConnect': false });
         this._no = no || 0;
         this.setAgentInfo();
         this.initClient();
@@ -144,7 +145,7 @@ export class ClientManager {
      */
     private hello(data: HelloJSON): void {
         // ここに自分じゃないときの処理を入れるか悩む
-        if (data.header.type !== 'Hello') {
+        if (data.header.type !== Common.EVENT_HELLO) {
             Common.trace(Common.STATE_ERROR, `サーバ認証に失敗したため、${this.socket.io.uri}を切断します。`);
             this.close();
 
