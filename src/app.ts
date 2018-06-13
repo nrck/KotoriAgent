@@ -1,9 +1,9 @@
 import { ClientManager } from './clientManager';
 import { Common } from './common';
-import { ExecJob } from './execJob';
+// import { ExecJob } from './execJob';
 
 class App {
-    private execJobs = new Array<ExecJob>();
+    // private execJobs = new Array<ExecJob>();
     private cm: ClientManager;
 
     constructor() {

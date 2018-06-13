@@ -95,7 +95,7 @@ export class ClientManager {
         this.socket.on(Common.EVENT_DISCONNECT, (reason: string) => { this.disconnect(reason); });
         this.socket.on(Common.EVENT_HELLO, (data: HelloJSON) => { this.hello(data); });
         this.socket.on(Common.EVENT_KILL_JOB, () => { this.connection(); });
-        this.socket.on(Common.EVENT_RESULT_JOB, () => { this.connection(); });
+        // this.socket.on(Common.EVENT_SEND_JOB_RESULT, () => { this.connection(); });
         this.socket.on(Common.EVENT_SEND_JOB, (data: SendJobJSON) => { this.receiveJob(data); });
         this.open();
     }
