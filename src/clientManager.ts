@@ -88,13 +88,21 @@ export class ClientManager {
      */
     public initClient(): void {
         // SocketIOのAPI仕様みて
+
+        // 接続時
         this.socket.on('connect', () => { this.connection(); });
         // this.socket.on('connect_error', (error: Error) => { this.connection(); });
         // this.socket.on('connect_timeout', (error: Error) => { this.connection(); });
+
+        // 切断時
         this.socket.on(Common.EVENT_DISCONNECT, (reason: string) => { this.disconnect(reason); });
+        // 承認電文（レスポンス）
         this.socket.on(Common.EVENT_HELLO, (data: HelloJSON) => { this.hello(data); });
+        // ジョブの強制終了の受信
         this.socket.on(Common.EVENT_KILL_JOB, () => { this.connection(); });
+        // ジョブの実行結果（これいる？
         this.socket.on(Common.EVENT_RESULT_JOB, () => { this.connection(); });
+        // ジョブの実行の受信
         this.socket.on(Common.EVENT_SEND_JOB, (data: SendJobJSON) => { this.receiveJob(data); });
         this.open();
     }
