@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as SocketIOClient from 'socket.io-client';
 import { Common } from './common';
-import { AgentJSON, DataHeaderJSON, HelloJSON, SendJobJSON } from './interface';
+import { AgentJSON, DataHeaderJSON, HelloJSON, SendJobJSON, SerialJobJSON } from './interface';
 
 export class ClientManager {
     private static CLIENT_CONFIG = './config/config.json';
@@ -77,6 +77,7 @@ export class ClientManager {
 
         return this._no;
     }
+
     public setAgentInfo(): void {
         const file = JSON.parse(fs.readFileSync(ClientManager.CLIENT_CONFIG, 'utf8'));
         this._agentName = file.agentName;
@@ -100,9 +101,8 @@ export class ClientManager {
         // 承認電文（レスポンス）
         this.socket.on(Common.EVENT_HELLO, (data: HelloJSON) => { this.hello(data); });
         // ジョブの強制終了の受信
-        this.socket.on(Common.EVENT_KILL_JOB, () => { this.connection(); });
-        // this.socket.on(Common.EVENT_SEND_JOB_RESULT, () => { this.connection(); });
-        this.socket.on(Common.EVENT_SEND_JOB, (data: SendJobJSON) => { this.receiveJob(data); });
+        this.socket.on(Common.EVENT_KILL_JOB, (data: SendJobJSON, ack: Function) => { this.receiveKillJob(data, ack); });
+        this.socket.on(Common.EVENT_SEND_JOB, (data: SendJobJSON, ack: Function) => { this.receiveJob(data, ack); });
         this.open();
     }
 
@@ -136,7 +136,7 @@ export class ClientManager {
             'name': this.agentName,
             'sharekey': this.shareKey
         };
-        this.socket.emit(Common.EVENT_HELLO, { 'data': data, 'header': this.createDataHeader(false, Common.ENV_SERVER_HOST, 'Hello') });
+        this.socket.emit(Common.EVENT_HELLO, { 'data': data, 'header': this.createDataHeader(false, 'Hello') });
     }
 
     /**
@@ -162,25 +162,87 @@ export class ClientManager {
         Common.trace(Common.STATE_INFO, 'サーバ認証に成功しました。');
     }
 
-    private receiveJob(data: SendJobJSON): void {
-        this.events.emit(Common.EVENT_SEND_JOB, data.data);
+    /**
+     * ジョブ受信時の処理です。
+     * @param data 受信したSendJobJSON
+     * @param ack サーバーへ返答するFunction（true|false）
+     */
+    private receiveJob(data: SendJobJSON, ack: Function): void {
+        // 自分宛てか確認する
+        if (this.isDestinationToMyself(data.header)) {
+            this.events.emit(Common.EVENT_RECEIVE_SEND_JOB, data.data, ack);
+        } else {
+            ack(false);
+        }
     }
 
-    // private receiveKillJob(data: SendJobJSON): void {
+    /**
+     * ジョブ強制終了受信時の処理です。
+     * @param data 受信したSendJobJSON
+     * @param ack サーバーへ返答するFunction（true|false）
+     */
+    private receiveKillJob(data: SendJobJSON, ack: Function): void {
+        // 自分宛てか確認する
+        if (this.isDestinationToMyself(data.header)) {
+            this.events.emit(Common.EVENT_RECEIVE_KILL_JOB, data.data, ack);
+        } else {
+            ack(false);
+        }
+    }
 
-    // }
-
-    public createDataHeader(isResponse: false | [true, number], to: string, type: string): DataHeaderJSON {
+    /**
+     * データヘッダーを作成します。
+     * @param isResponse 返信かどうか
+     * @param to 宛先
+     * @param type データ・タイプ
+     */
+    private createDataHeader(isResponse: false | [true, number], type: string): DataHeaderJSON {
         const header: DataHeaderJSON = {
-            'from': Common.ENV_SERVER_HOST,
+            'from': this.agentName,
             'isResponse': isResponse,
             'no': this.no,
             'timestamp': new Date(),
-            'to': to,
+            'to': Common.ENV_SERVER_HOST,
             'type': type
         };
 
         return header;
+    }
+
+    /**
+     * 自分宛てかどうか確認します。
+     * @param header 受信したデータヘッダー
+     */
+    private isDestinationToMyself(header: DataHeaderJSON): boolean {
+        return header.to === this.agentName;
+    }
+
+    /**
+     * データヘッダーを付加してメッセージを送付します。
+     * @param serialJob シリアルジョブ
+     * @param eventType イベントタイプ
+     * @param onAck Ack
+     */
+    public putDataHeaderAndSendJob(serialJob: SerialJobJSON, eventType: string, onAck: Function): void {
+        // eventTypeの確認
+        switch (eventType) {
+            case Common.EVENT_EXEC_ERROR: break;
+            case Common.EVENT_EXEC_KILLED: break;
+            case Common.EVENT_EXEC_SUCCESS: break;
+            default:
+                Common.trace(Common.STATE_ERROR, `putDataHeaderAndSendJobで未定義のイベントが引数に渡されました。eventType=${eventType}`);
+
+                return;
+        }
+
+        // SendJobJSONの作成
+        const sendJobJSON: SendJobJSON = {
+            'data': serialJob,
+            'header': this.createDataHeader(false, eventType)
+        };
+
+        Common.trace(Common.STATE_INFO, `サーバにタイプ${eventType}、シリアル${sendJobJSON.data.serial}、ジョブコード${sendJobJSON.data.code}を送信しました。`);
+        this.socket.emit(eventType, sendJobJSON, onAck);
     }
 }
 
