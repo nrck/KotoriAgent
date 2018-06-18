@@ -2,11 +2,12 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as SocketIOClient from 'socket.io-client';
 import { Common } from './common';
-import { AgentJSON, DataHeaderJSON, HelloJSON, SendJobJSON, SerialJobJSON } from './interface';
+import { AgentJSON, DataHeaderJSON, SendJobJSON, SerialJobJSON } from './interface';
 
 export class ClientManager {
     private static CLIENT_CONFIG = './config/config.json';
     private static CLIENT_PROTOCOL = 'ws';
+
     private _socket: SocketIOClient.Socket;
     private _serverHost: string;
     private _port: number;
@@ -89,19 +90,13 @@ export class ClientManager {
      * 初期化します
      */
     public initClient(): void {
-        // SocketIOのAPI仕様みて
-
         // 接続時
         this.socket.on('connect', () => { this.connection(); });
-        // this.socket.on('connect_error', (error: Error) => { this.connection(); });
-        // this.socket.on('connect_timeout', (error: Error) => { this.connection(); });
-
         // 切断時
         this.socket.on(Common.EVENT_DISCONNECT, (reason: string) => { this.disconnect(reason); });
-        // 承認電文（レスポンス）
-        this.socket.on(Common.EVENT_HELLO, (data: HelloJSON) => { this.hello(data); });
-        // ジョブの強制終了の受信
+        // ジョブ強制終了の受信
         this.socket.on(Common.EVENT_KILL_JOB, (data: SendJobJSON, ack: Function) => { this.receiveKillJob(data, ack); });
+        // ジョブ実行の受信
         this.socket.on(Common.EVENT_SEND_JOB, (data: SendJobJSON, ack: Function) => { this.receiveJob(data, ack); });
         this.open();
     }
@@ -136,7 +131,14 @@ export class ClientManager {
             'name': this.agentName,
             'sharekey': this.shareKey
         };
-        this.socket.emit(Common.EVENT_HELLO, { 'data': data, 'header': this.createDataHeader(false, 'Hello') });
+        this.socket.emit(Common.EVENT_HELLO, { 'data': data, 'header': this.createDataHeader(false, Common.EVENT_HELLO) }, (isSuccess: boolean) =>{
+            if(isSuccess) {
+                Common.trace(Common.STATE_INFO, 'サーバ認証に成功しました。');
+            } else {
+                Common.trace(Common.STATE_ERROR, `サーバ認証に失敗したため、${this.socket.io.uri}を切断します。`);
+                this.close();
+            }
+        });
     }
 
     /**
@@ -145,21 +147,6 @@ export class ClientManager {
      */
     private disconnect(reason: string): void {
         Common.trace(Common.STATE_INFO, `${reason}のため、${this.socket.io.uri}から切断されました。`);
-    }
-
-    /**
-     * Helloの結果を受けたときの処理
-     * @param data 受信したHelloJSON
-     */
-    private hello(data: HelloJSON): void {
-        // ここに自分じゃないときの処理を入れるか悩む
-        if (data.header.type !== Common.EVENT_HELLO) {
-            Common.trace(Common.STATE_ERROR, `サーバ認証に失敗したため、${this.socket.io.uri}を切断します。`);
-            this.close();
-
-            return;
-        }
-        Common.trace(Common.STATE_INFO, 'サーバ認証に成功しました。');
     }
 
     /**
