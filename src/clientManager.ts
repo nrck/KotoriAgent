@@ -131,8 +131,8 @@ export class ClientManager {
             'name': this.agentName,
             'sharekey': this.shareKey
         };
-        this.socket.emit(Common.EVENT_HELLO, { 'data': data, 'header': this.createDataHeader(false, Common.EVENT_HELLO) }, (isSuccess: boolean) =>{
-            if(isSuccess) {
+        this.socket.emit(Common.EVENT_HELLO, { 'data': data, 'header': this.createDataHeader(false, Common.EVENT_HELLO) }, (isSuccess: boolean) => {
+            if (isSuccess) {
                 Common.trace(Common.STATE_INFO, 'サーバ認証に成功しました。');
             } else {
                 Common.trace(Common.STATE_ERROR, `サーバ認証に失敗したため、${this.socket.io.uri}を切断します。`);

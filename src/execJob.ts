@@ -30,7 +30,7 @@ export class ExecJob implements SerialJobJSON {
     public get schedule(): RunDate {
         return this.serialJob.schedule;
     }
-    public get file(): string {
+    public get file(): string | undefined {
         return this.serialJob.file;
     }
 
@@ -58,6 +58,14 @@ export class ExecJob implements SerialJobJSON {
         this.serialJob.exceptionMes = value;
     }
 
+    public get cwd(): string | undefined {
+        return this.serialJob.cwd;
+    }
+
+    public get isSpecial(): boolean {
+        return this.serialJob.isSpecial;
+    }
+
     public get events(): EventEmitter {
         return this._events;
     }
@@ -70,6 +78,13 @@ export class ExecJob implements SerialJobJSON {
      * ジョブの実行
      */
     public exec(): void {
+        if (typeof this.file === 'undefined') {
+            this.returnCode = '404';
+            this.exceptionMes = '実行ファイルが設定されていません。';
+            this.events.emit(Common.EVENT_EXEC_ERROR);
+
+            return;
+        }
         // tslint:disable-next-line:no-magic-numbers
         this.process = execFile(this.file, this.args, { 'maxBuffer': 400 * 1024 }, (error: Error | null, stdout: string, stderr: string) => {
             if (error !== null) {
