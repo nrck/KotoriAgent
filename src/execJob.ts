@@ -58,8 +58,8 @@ export class ExecJob implements SerialJobJSON {
         this.serialJob.exceptionMes = value;
     }
 
-    public get cwd(): string | undefined {
-        return this.serialJob.cwd;
+    public get cwd(): string {
+        return this.serialJob.cwd || './';
     }
 
     public get isSpecial(): boolean {
@@ -86,7 +86,7 @@ export class ExecJob implements SerialJobJSON {
             return;
         }
         // tslint:disable-next-line:no-magic-numbers
-        this.process = execFile(this.file, this.args, { 'maxBuffer': 400 * 1024 }, (error: Error | null, stdout: string, stderr: string) => {
+        this.process = execFile(this.file, this.args, { 'maxBuffer': 400 * 1024, 'cwd': this.cwd }, (error: Error | null, stdout: string, stderr: string) => {
             if (error !== null) {
                 this.returnCode = '500';
                 this.exceptionMes = error.message;
