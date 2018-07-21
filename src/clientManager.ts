@@ -5,7 +5,7 @@ import { Common } from './common';
 import { AgentJSON, DataHeaderJSON, SendJobJSON, SerialJobJSON } from './interface';
 
 export class ClientManager {
-    private static CLIENT_CONFIG = './config/config.json';
+    private static CLIENT_CONFIG = './config/agent.json';
     private static CLIENT_PROTOCOL = 'ws';
 
     private _socket: SocketIOClient.Socket;
