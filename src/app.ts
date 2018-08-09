@@ -10,7 +10,7 @@ class App {
 
     constructor() {
         // tslint:disable-next-line:no-magic-numbers
-        this.cm = new ClientManager('192.168.2.2', 27131);
+        this.cm = new ClientManager('192.168.2.2', 27131, '/');
         this.ejm = new ExecJobManager();
         this.init();
     }
