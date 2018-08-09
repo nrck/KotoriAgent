@@ -26,6 +26,8 @@ export class Common {
     public static STATE_WAITING_START_TIME = 'Waiting (start time)';
     /** 前ジョブ終了待ち */
     public static STATE_WAITING_BEFORE_JOB = 'Waiting (before job)';
+    /** 一時停止中 */
+    public static STATE_PAUSE = 'Pause';
     /** 実行なし */
     public static STATE_PASS = 'Pass';
     /** 実行正常終了 */
@@ -76,6 +78,32 @@ export class Common {
     // Event (FEP -> Server)
     /** API向け情報収集 */
     public static EVENT_COLLECT_INFO = 'CollectInfo';
+    /** スケジュールリロード送信イベント */
+    public static EVENT_SEND_SCHEDULE_RELOAD = 'SendScheduleReload';
+
+    /** ジョブネット定義追加情報送信イベント */
+    public static EVENT_SEND_PUT_DEFINE_JOBNET = 'PutDefineJobnet';
+    /** ジョブネット定義削除情報送信イベント */
+    public static EVENT_SEND_REMOVE_DEFINE_JOBNET = 'RemoveDefineJobnet';
+    /** ジョブネット定義更新情報送信イベント */
+    public static EVENT_SEND_UPDATE_DEFINE_JOBNET = 'UpdateDefineJobnet';
+
+    /** 実行中ジョブネット一時停止情報送信イベント */
+    public static EVENT_SEND_PAUSE_RUNNIG_JOBNET = 'PauseRunningJobnet';
+    /** 実行中ジョブネット中断情報送信イベント */
+    public static EVENT_SEND_STOP_RUNNIG_JOBNET = 'StopRunningJobnet';
+    /** 実行中ジョブネット一部通過送信イベント */
+    public static EVENT_SEND_PASS_RUNNIG_JOBNET = 'PassRunningJobnet';
+
+    /** 実行済みジョブネット再実行（実行時定義）送信イベント */
+    public static EVENT_SEND_RERUN_FINISH_JOBNET = 'RerunFinishJobnet';
+
+    /** エージェント定義追加情報送信イベント */
+    public static EVENT_SEND_PUT_DEFINE_AGENT = 'PutDefineAgent';
+    /** エージェント定義削除情報送信イベント */
+    public static EVENT_SEND_REMOVE_DEFINE_AGENT = 'RemoveDefineAgent';
+    /** エージェント定義更新情報送信イベント */
+    public static EVENT_SEND_UPDATE_DEFINE_AGENT = 'UpdateDefineAgent';
 
     // Event (Server)
     /** コネクション切断イベント */
@@ -88,6 +116,30 @@ export class Common {
     public static EVENT_RECEIVE_HELLO = 'ReceiveHello';
     /** CollectInfo受信イベント */
     public static EVENT_RECEIVE_COLLECT_INFO = 'ReceiveCollectInfo';
+
+    /** ジョブネット定義追加情報受信イベント */
+    public static EVENT_RECEIVE_PUT_DEFINE_JOBNET = 'ReceivePutDefineJobnet';
+    /** ジョブネット定義削除情報受信イベント */
+    public static EVENT_RECEIVE_REMOVE_DEFINE_JOBNET = 'ReceiveRemoveDefineJobnet';
+    /** ジョブネット定義更新情報受信イベント */
+    public static EVENT_RECEIVE_UPDATE_DEFINE_JOBNET = 'ReceiveUpdateDefineJobnet';
+
+    /** 実行中ジョブネット一時停止情報受信イベント */
+    public static EVENT_RECEIVE_PAUSE_RUNNIG_JOBNET = 'ReceivePauseRunningJobnet';
+    /** 実行中ジョブネット中断情報受信イベント */
+    public static EVENT_RECEIVE_STOP_RUNNIG_JOBNET = 'ReceiveStopRunningJobnet';
+    /** 実行中ジョブネット一部通過受信イベント */
+    public static EVENT_RECEIVE_PASS_RUNNIG_JOBNET = 'ReceivePassRunningJobnet';
+
+    /** 実行済みジョブネット再実行（実行時定義）受信イベント */
+    public static EVENT_RECEIVE_RERUN_FINISH_JOBNET = 'ReceiveRerunFinishJobnet';
+
+    /** エージェント定義追加情報受信イベント */
+    public static EVENT_RECEIVE_PUT_DEFINE_AGENT = 'ReceivePutDefineAgent';
+    /** エージェント定義削除情報受信イベント */
+    public static EVENT_RECEIVE_REMOVE_DEFINE_AGENT = 'ReceiveRemoveDefineAgent';
+    /** エージェント定義更新情報受信イベント */
+    public static EVENT_RECEIVE_UPDATE_DEFINE_AGENT = 'ReceiveUpdateDefineAgent';
 
     // Event (Agent)
     /** Job実行受信イベント */
