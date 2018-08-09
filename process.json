@@ -1,6 +1,6 @@
 {
     "name": "kotori",
-    "script": "kotoriAgent.js",
+    "script": "./out/app.js",
     "node_args" : "",
     "error_file": "kotori-stderr.log",
     "out_file": "kotori-stdout.log",
