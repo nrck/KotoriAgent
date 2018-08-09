@@ -1,6 +1,6 @@
 {
   "name": "working-kotori",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Kotori Agent is very cute jobnet control system.",
   "main": "app.js",
   "author": {
