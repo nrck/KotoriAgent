@@ -106,6 +106,9 @@ export class ExecJob implements SerialJobJSON {
         Common.trace(Common.STATE_INFO, `ジョブを実行しました。（execFile：${this.file}、PID：${this.process.pid}）`);
     }
 
+    /**
+     * ジョブを強制終了します。
+     */
     public kill(): void {
         if (typeof this.process === 'undefined') {
             Common.trace(Common.STATE_ERROR, `ジョブはすでに終了しています。（execFile：${this.file}）`);

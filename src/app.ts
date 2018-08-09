@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import { ClientManager } from './clientManager';
 import { Common } from './common';
 import { ExecJob } from './execJob';
@@ -5,12 +6,17 @@ import { ExecJobManager } from './execJobManager';
 import { SerialJobJSON } from './interface';
 
 class App {
+    /** ジョブ実行マネージャ */
     private ejm: ExecJobManager;
+    /** クライアントマネージャ */
     private cm: ClientManager;
 
+    /**
+     * アプリケーションの作成を行います。
+     */
     constructor() {
-        // tslint:disable-next-line:no-magic-numbers
-        this.cm = new ClientManager('192.168.2.2', 27131, '/');
+        const config = JSON.parse(fs.readFileSync('./config/server.json', 'utf-8'));
+        this.cm = new ClientManager(config.serverip, config.port, config.namespace);
         this.ejm = new ExecJobManager();
         this.init();
     }
@@ -28,6 +34,9 @@ class App {
         this.start();
     }
 
+    /**
+     * 各種イベント登録を行います
+     */
     private init(): void {
         // クライアントマネージャ側のイベント処理登録
         this.cm.events.on(Common.EVENT_RECEIVE_SEND_JOB, (data: SerialJobJSON, ack: Function) => { this.receiveSendJob(data, ack); });
@@ -41,6 +50,7 @@ class App {
 
     /**
      * ジョブ受信時の処理です。
+     * 処理が正常に開始したらコールバックでtrueを返します。falseの場合はなんらかのエラーが発生しています。
      * @param data 受信したSerialJobJSON
      * @param ack サーバーに返すAck
      */
@@ -59,15 +69,32 @@ class App {
         ack(this.ejm.killJob(data.serial));
     }
 
+    /**
+     * ジョブ失敗時の後処理です。
+     * @param job 対象のジョブ
+     * @param onAck コールバック
+     */
     private execError(job: ExecJob, onAck: Function): void {
         this.cm.putDataHeaderAndSendJob(job, Common.EVENT_EXEC_ERROR, onAck);
     }
 
+    /**
+     * ジョブ成功時の後処理です。
+     * @param job 対象のジョブ
+     * @param onAck コールバック
+     * @param stdout 標準出力
+     * @param stderr 標準エラー出力
+     */
     private execSuccess(job: ExecJob, onAck: Function, stdout: string, stderr: string): void {
         this.cm.putDataHeaderAndSendJob(job, Common.EVENT_EXEC_SUCCESS, onAck);
-        Common.trace(Common.STATE_INFO, `stdout=${stdout}, stderr=${stderr}`);
+        Common.trace(Common.STATE_DEBUG, `stdout=${stdout}, stderr=${stderr}`);
     }
 
+    /**
+     * ジョブ強制終了の後処理です。
+     * @param job 対象のジョブ
+     * @param onAck コールバック
+     */
     private execKilled(job: ExecJob, onAck: Function): void {
         this.cm.putDataHeaderAndSendJob(job, Common.EVENT_EXEC_KILLED, onAck);
     }
