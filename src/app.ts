@@ -16,7 +16,7 @@ class App {
      */
     constructor() {
         const config = JSON.parse(fs.readFileSync('./config/server.json', 'utf-8'));
-        this.cm = new ClientManager(config.serverip, config.port, config.namespace);
+        this.cm = new ClientManager(config.ip, config.port, config.namespace);
         this.ejm = new ExecJobManager();
         this.init();
     }
