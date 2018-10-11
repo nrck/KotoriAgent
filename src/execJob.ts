@@ -86,7 +86,7 @@ export class ExecJob implements SerialJobJSON {
             return;
         }
         // tslint:disable-next-line:no-magic-numbers
-        this.process = execFile(this.file, this.args, { 'maxBuffer': 400 * 1024, 'cwd': this.cwd, 'timeout': 30 * 1000, 'shell': true }, (error: Error | null, stdout: string, stderr: string) => {
+        this.process = execFile(this.file, this.args, { 'maxBuffer': 400 * 1024, 'cwd': this.cwd, 'timeout': 30 * 1000 }, (error: Error | null, stdout: string, stderr: string) => {
             if (error !== null) {
                 this.returnCode = '500';
                 this.exceptionMes = error.message;
@@ -103,7 +103,7 @@ export class ExecJob implements SerialJobJSON {
 
         });
         Common.trace(Common.STATE_DEBUG, `file:${this.file}, args:${JSON.stringify(this.args)}, cwd:${this.cwd}`);
-        Common.trace(Common.STATE_INFO, `ジョブを実行しました。（execFile：${this.file}、PID：${this.process.pid}）`);
+        Common.trace(Common.STATE_INFO, `ジョブを実行しました。（execFile：${this.file}、PID：${this.process ? this.process.pid : -1}）`);
     }
 
     /**
