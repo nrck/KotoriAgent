@@ -98,7 +98,6 @@ export class ClientManager {
         this.socket.on(Common.EVENT_KILL_JOB, (data: SendJobJSON, ack: Function) => { this.receiveKillJob(data, ack); });
         // ジョブ実行の受信
         this.socket.on(Common.EVENT_SEND_JOB, (data: SendJobJSON, ack: Function) => { this.receiveJob(data, ack); });
-        this.open();
     }
 
     /**
