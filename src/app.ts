@@ -16,7 +16,7 @@ class App {
      */
     constructor() {
         const config = JSON.parse(fs.readFileSync('./config/server.json', 'utf-8'));
-        this.cm = new ClientManager(config.serverip, config.port, config.namespace);
+        this.cm = new ClientManager(config.ip, config.port, config.namespace);
         this.ejm = new ExecJobManager();
         this.init();
     }
@@ -44,7 +44,7 @@ class App {
 
         // 実行ジョブマネージャ側のイベント処理登録
         this.ejm.events.on(Common.EVENT_EXEC_ERROR, (job: ExecJob, onAck: Function) => { this.execError(job, onAck); });
-        this.ejm.events.on(Common.EVENT_EXEC_SUCCESS, (job: ExecJob, onAck: Function, stdout: string, stderr: string) => { this.execSuccess(job, onAck, stdout, stderr); });
+        this.ejm.events.on(Common.EVENT_EXEC_SUCCESS, (job: ExecJob, stdout: string, stderr: string, onAck: Function) => { this.execSuccess(job, stdout, stderr, onAck); });
         this.ejm.events.on(Common.EVENT_EXEC_KILLED, (job: ExecJob, onAck: Function) => { this.execKilled(job, onAck); });
     }
 
@@ -85,7 +85,7 @@ class App {
      * @param stdout 標準出力
      * @param stderr 標準エラー出力
      */
-    private execSuccess(job: ExecJob, onAck: Function, stdout: string, stderr: string): void {
+    private execSuccess(job: ExecJob, stdout: string, stderr: string, onAck: Function): void {
         this.cm.putDataHeaderAndSendJob(job, Common.EVENT_EXEC_SUCCESS, onAck);
         Common.trace(Common.STATE_DEBUG, `stdout=${stdout}, stderr=${stderr}`);
     }
