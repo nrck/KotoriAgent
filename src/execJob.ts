@@ -86,24 +86,24 @@ export class ExecJob implements SerialJobJSON {
             return;
         }
         // tslint:disable-next-line:no-magic-numbers
-        this.process = execFile(this.file, this.args, { 'maxBuffer': 400 * 1024, 'cwd': this.cwd, 'timeout': 30 * 1000, 'shell': true }, (error: Error | null, stdout: string, stderr: string) => {
-            if (error !== null) {
+        this.process = execFile(this.file, this.args, { 'maxBuffer': 400 * 1024, 'cwd': this.cwd, 'timeout': 30 * 1000 }, (error: Error | null, stdout: string, stderr: string) => {
+            if (error !== null || stderr !== '') {
                 this.returnCode = '500';
-                this.exceptionMes = error.message;
+                this.exceptionMes = error ? error.message : undefined;
                 this.events.emit(Common.EVENT_EXEC_ERROR);
                 Common.trace(Common.STATE_INFO, `ジョブが失敗しました。（execFile：${this.file}、RC：${this.returnCode}、ErrorMes：${this.exceptionMes}）`);
 
                 return;
             }
 
-            this.returnCode = execSync(this.echorc).toString();
+            this.returnCode = execSync(this.echorc).toString().trim();
             this.events.emit(Common.EVENT_EXEC_SUCCESS, stdout, stderr);
             Common.trace(Common.STATE_INFO, `ジョブが成功しました。（execFile：${this.file}、RC：${this.returnCode}）`);
             this.process = undefined;
 
         });
         Common.trace(Common.STATE_DEBUG, `file:${this.file}, args:${JSON.stringify(this.args)}, cwd:${this.cwd}`);
-        Common.trace(Common.STATE_INFO, `ジョブを実行しました。（execFile：${this.file}、PID：${this.process.pid}）`);
+        Common.trace(Common.STATE_INFO, `ジョブを実行しました。（execFile：${this.file}、PID：${this.process ? this.process.pid : -1}）`);
     }
 
     /**

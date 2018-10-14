@@ -49,9 +49,9 @@ export class ExecJobManager {
         const job = new ExecJob(serialJobJSON);
 
         // Eventはそのままパススルーするー（激寒）
-        job.events.on(Common.EVENT_EXEC_ERROR, () => { this.onExecError(job); });
-        job.events.on(Common.EVENT_EXEC_SUCCESS, (stdout: string, stderr: string) => { this.onExecSuccess(job, stdout, stderr); });
-        job.events.on(Common.EVENT_EXEC_KILLED, () => { this.onExecKilled(job); });
+        job.events.on(Common.EVENT_EXEC_ERROR, () => { this.onExecError(serialJobJSON); });
+        job.events.on(Common.EVENT_EXEC_SUCCESS, (stdout: string, stderr: string) => { this.onExecSuccess(serialJobJSON, stdout, stderr); });
+        job.events.on(Common.EVENT_EXEC_KILLED, () => { this.onExecKilled(serialJobJSON); });
 
         // リストに追加
         this.execJobs.push(job);
@@ -103,10 +103,14 @@ export class ExecJobManager {
      * ExecError発生時の処理です。
      * @param job 対象のジョブ
      */
-    private onExecError(job: ExecJob): void {
+    private onExecError(job: SerialJobJSON): void {
         this.events.emit(Common.EVENT_EXEC_ERROR, job, (isSended: boolean) => {
-            if (isSended) this.delExecJob(job.serial);
-            else Common.trace(Common.STATE_ERROR, `シリアル：${job.serial}, ジョブコード${job.code}のError情報送信が受理されませんでした。`);
+            if (isSended) {
+                Common.trace(Common.STATE_INFO, `シリアル：${job.serial}, ジョブコード${job.code}のError情報送信が受理されました。`);
+                this.delExecJob(job.serial);
+            } else {
+                Common.trace(Common.STATE_ERROR, `シリアル：${job.serial}, ジョブコード${job.code}のError情報送信が受理されませんでした。`);
+            }
         });
     }
 
@@ -116,10 +120,15 @@ export class ExecJobManager {
      * @param stdout 標準出力
      * @param stderr エラー出力
      */
-    private onExecSuccess(job: ExecJob, stdout: string, stderr: string): void {
+    private onExecSuccess(job: SerialJobJSON, stdout: string, stderr: string): void {
+        Common.trace(Common.STATE_DEBUG, 'onExecSuccessが実行されました。');
         this.events.emit(Common.EVENT_EXEC_SUCCESS, job, stdout, stderr, (isSended: boolean) => {
-            if (isSended) this.delExecJob(job.serial);
-            else Common.trace(Common.STATE_ERROR, `シリアル：${job.serial}, ジョブコード${job.code}のSuccess情報送信が受理されませんでした。`);
+            if (isSended) {
+                this.delExecJob(job.serial);
+                Common.trace(Common.STATE_INFO, `シリアル：${job.serial}, ジョブコード${job.code}のSuccess情報送信が受理されました。`);
+            } else {
+                Common.trace(Common.STATE_ERROR, `シリアル：${job.serial}, ジョブコード${job.code}のSuccess情報送信が受理されませんでした。`);
+            }
         });
     }
 
@@ -127,7 +136,7 @@ export class ExecJobManager {
      * ExecKilled発生時の処理です。
      * @param job 対象のジョブ
      */
-    private onExecKilled(job: ExecJob): void {
+    private onExecKilled(job: SerialJobJSON): void {
         this.events.emit(Common.EVENT_EXEC_KILLED, job, (isSended: boolean) => {
             if (isSended) this.delExecJob(job.serial);
             else Common.trace(Common.STATE_ERROR, `シリアル：${job.serial}, ジョブコード${job.code}のKilled情報送信が受理されませんでした。`);

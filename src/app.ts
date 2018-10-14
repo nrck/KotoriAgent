@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import { ClientManager } from './clientManager';
 import { Common } from './common';
-import { ExecJob } from './execJob';
 import { ExecJobManager } from './execJobManager';
 import { SerialJobJSON } from './interface';
 
@@ -43,9 +42,9 @@ class App {
         this.cm.events.on(Common.EVENT_RECEIVE_KILL_JOB, (data: SerialJobJSON, ack: Function) => { this.receiveKillJob(data, ack); });
 
         // 実行ジョブマネージャ側のイベント処理登録
-        this.ejm.events.on(Common.EVENT_EXEC_ERROR, (job: ExecJob, onAck: Function) => { this.execError(job, onAck); });
-        this.ejm.events.on(Common.EVENT_EXEC_SUCCESS, (job: ExecJob, onAck: Function, stdout: string, stderr: string) => { this.execSuccess(job, onAck, stdout, stderr); });
-        this.ejm.events.on(Common.EVENT_EXEC_KILLED, (job: ExecJob, onAck: Function) => { this.execKilled(job, onAck); });
+        this.ejm.events.on(Common.EVENT_EXEC_ERROR, (job: SerialJobJSON, onAck: Function) => { this.execError(job, onAck); });
+        this.ejm.events.on(Common.EVENT_EXEC_SUCCESS, (job: SerialJobJSON, stdout: string, stderr: string, onAck: Function) => { this.execSuccess(job, stdout, stderr, onAck); });
+        this.ejm.events.on(Common.EVENT_EXEC_KILLED, (job: SerialJobJSON, onAck: Function) => { this.execKilled(job, onAck); });
     }
 
     /**
@@ -74,7 +73,7 @@ class App {
      * @param job 対象のジョブ
      * @param onAck コールバック
      */
-    private execError(job: ExecJob, onAck: Function): void {
+    private execError(job: SerialJobJSON, onAck: Function): void {
         this.cm.putDataHeaderAndSendJob(job, Common.EVENT_EXEC_ERROR, onAck);
     }
 
@@ -85,7 +84,7 @@ class App {
      * @param stdout 標準出力
      * @param stderr 標準エラー出力
      */
-    private execSuccess(job: ExecJob, onAck: Function, stdout: string, stderr: string): void {
+    private execSuccess(job: SerialJobJSON, stdout: string, stderr: string, onAck: Function): void {
         this.cm.putDataHeaderAndSendJob(job, Common.EVENT_EXEC_SUCCESS, onAck);
         Common.trace(Common.STATE_DEBUG, `stdout=${stdout}, stderr=${stderr}`);
     }
@@ -95,7 +94,7 @@ class App {
      * @param job 対象のジョブ
      * @param onAck コールバック
      */
-    private execKilled(job: ExecJob, onAck: Function): void {
+    private execKilled(job: SerialJobJSON, onAck: Function): void {
         this.cm.putDataHeaderAndSendJob(job, Common.EVENT_EXEC_KILLED, onAck);
     }
 }
