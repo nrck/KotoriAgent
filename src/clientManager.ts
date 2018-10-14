@@ -212,9 +212,11 @@ export class ClientManager {
     public putDataHeaderAndSendJob(serialJob: SerialJobJSON, eventType: string, onAck: Function): void {
         // eventTypeの確認
         switch (eventType) {
-            case Common.EVENT_EXEC_ERROR: break;
-            case Common.EVENT_EXEC_KILLED: break;
-            case Common.EVENT_EXEC_SUCCESS: break;
+            case Common.EVENT_EXEC_ERROR:
+            case Common.EVENT_EXEC_KILLED:
+            case Common.EVENT_EXEC_SUCCESS:
+                eventType = Common.EVENT_SEND_JOB_RESULT;
+                break;
             default:
                 Common.trace(Common.STATE_ERROR, `putDataHeaderAndSendJobで未定義のイベントが引数に渡されました。eventType=${eventType}`);
 
