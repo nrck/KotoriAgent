@@ -154,10 +154,12 @@ export class ClientManager {
      * @param ack サーバーへ返答するFunction（true|false）
      */
     private receiveJob(data: SendJobJSON, ack: Function): void {
+        Common.trace(Common.STATE_INFO, `${data.header.from}から${data.header.to}へのシリアル${data.data.serial}、ジョブコード${data.data.code}のジョブ情報を受信しました。`);
         // 自分宛てか確認する
         if (this.isDestinationToMyself(data.header)) {
             this.events.emit(Common.EVENT_RECEIVE_SEND_JOB, data.data, ack);
         } else {
+            Common.trace(Common.STATE_ERROR, `${data.header.from}から${data.header.to}へのシリアル${data.data.serial}、ジョブコード${data.data.code}のジョブ情報は自エージェント宛ではありません。`);
             ack(false);
         }
     }
@@ -168,10 +170,12 @@ export class ClientManager {
      * @param ack サーバーへ返答するFunction（true|false）
      */
     private receiveKillJob(data: SendJobJSON, ack: Function): void {
+        Common.trace(Common.STATE_INFO, `${data.header.from}から${data.header.to}へのシリアル${data.data.serial}、ジョブコード${data.data.code}のジョブ情報を受信しました。`);
         // 自分宛てか確認する
         if (this.isDestinationToMyself(data.header)) {
             this.events.emit(Common.EVENT_RECEIVE_KILL_JOB, data.data, ack);
         } else {
+            Common.trace(Common.STATE_ERROR, `${data.header.from}から${data.header.to}へのシリアル${data.data.serial}、ジョブコード${data.data.code}のジョブ情報は自エージェント宛ではありません。`);
             ack(false);
         }
     }
