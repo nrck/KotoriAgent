@@ -55,7 +55,7 @@ class App {
      */
     private receiveSendJob(data: SerialJobJSON, ack: Function): void {
         const isStart = this.ejm.putExecJob(data);
-        if (isStart) this.ejm.execJob(data.serial);
+        if (isStart) this.ejm.execJob(data.serial, data.code);
         ack(isStart);
     }
 
@@ -65,7 +65,7 @@ class App {
      * @param ack サーバーに返すAck
      */
     private receiveKillJob(data: SerialJobJSON, ack: Function): void {
-        ack(this.ejm.killJob(data.serial));
+        ack(this.ejm.killJob(data.serial, data.code));
     }
 
     /**
