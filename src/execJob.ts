@@ -1,4 +1,4 @@
-import { ChildProcess, execFile, execSync } from 'child_process';
+import { ChildProcess, execFile } from 'child_process';
 import { EventEmitter } from 'events';
 import * as os from 'os';
 import { Common } from './common';
@@ -81,22 +81,26 @@ export class ExecJob implements SerialJobJSON {
         if (typeof this.file === 'undefined') {
             this.returnCode = '404';
             this.exceptionMes = '実行ファイルが設定されていません。';
+            Common.trace(Common.STATE_ERROR, `ジョブが失敗しました。（execFile：${this.file}、RC：${this.returnCode}、ErrorMes：${this.exceptionMes}）`);
             this.events.emit(Common.EVENT_EXEC_ERROR);
 
             return;
         }
-        // tslint:disable-next-line:no-magic-numbers
-        this.process = execFile(this.file, this.args, { 'maxBuffer': 400 * 1024, 'cwd': this.cwd, 'timeout': 30 * 1000 }, (error: Error | null, stdout: string, stderr: string) => {
+        // tslint:disable-next-line:no-magic-numbers no-any
+        this.process = execFile(this.file, this.args, { 'maxBuffer': 400 * 1024, 'cwd': this.cwd, 'timeout': 30 * 1000 }, (error: any | null, stdout: string, stderr: string) => {
             if (error !== null || stderr.trim() !== '') {
-                this.returnCode = '500';
-                this.exceptionMes = error !== null ? `child_process.execFile()がエラーで終了しました。理由：${error.message}` : `${this.file}の実行時に標準エラー出力がありました。出力：${stderr.trim()}`;
+                this.returnCode = error !== null ? error.code : '500';
+                this.exceptionMes = error !== null ? `child_process.execFile()がエラーで終了しました。理由：${error.message.trim()}` : `${this.file}の実行時に標準エラー出力がありました。出力：${stderr.trim()}`;
+                Common.trace(Common.STATE_DEBUG, `error :${JSON.stringify(error)}`);
+                Common.trace(Common.STATE_DEBUG, `stdout:${stdout}`);
+                Common.trace(Common.STATE_DEBUG, `stderr:${stderr}`);
+                Common.trace(Common.STATE_ERROR, `ジョブが失敗しました。（execFile：${this.file}、RC：${this.returnCode}、ErrorMes：${this.exceptionMes}）`);
                 this.events.emit(Common.EVENT_EXEC_ERROR);
-                Common.trace(Common.STATE_INFO, `ジョブが失敗しました。（execFile：${this.file}、RC：${this.returnCode}、ErrorMes：${this.exceptionMes}）`);
 
                 return;
             }
 
-            this.returnCode = execSync(this.echorc).toString().trim();
+            this.returnCode = '0';
             this.exceptionMes = `${this.file}は正常終了しました。出力:${stdout.trim()}`;
             this.events.emit(Common.EVENT_EXEC_SUCCESS, stdout, stderr);
             Common.trace(Common.STATE_INFO, `ジョブが成功しました。（execFile：${this.file}、RC：${this.returnCode}、ErrorMes：${this.exceptionMes}）`);
@@ -104,7 +108,7 @@ export class ExecJob implements SerialJobJSON {
 
         });
         Common.trace(Common.STATE_DEBUG, `file:${this.file}, args:${JSON.stringify(this.args)}, cwd:${this.cwd}`);
-        Common.trace(Common.STATE_INFO, `ジョブを実行しました。（execFile：${this.file}、PID：${typeof this.process !== 'undefined'  ? this.process.pid : -1}）`);
+        Common.trace(Common.STATE_INFO, `ジョブを実行しました。（execFile：${this.file}、PID：${typeof this.process !== 'undefined' ? this.process.pid : -1}）`);
     }
 
     /**
