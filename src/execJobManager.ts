@@ -135,8 +135,8 @@ export class ExecJobManager {
         Common.trace(Common.STATE_DEBUG, '====SerialJobJSONダンプ====');
         this.events.emit(Common.EVENT_EXEC_SUCCESS, job, stdout, stderr, (isSended: boolean) => {
             if (isSended) {
-                this.delExecJob(job.serial);
                 Common.trace(Common.STATE_INFO, `シリアル：${job.serial}, ジョブコード${job.code}のSuccess情報送信が受理されました。`);
+                this.delExecJob(job.serial);
             } else {
                 Common.trace(Common.STATE_ERROR, `シリアル：${job.serial}, ジョブコード${job.code}のSuccess情報送信が受理されませんでした。`);
             }
