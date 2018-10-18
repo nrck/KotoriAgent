@@ -38,8 +38,8 @@ class App {
      */
     private init(): void {
         // クライアントマネージャ側のイベント処理登録
-        this.cm.events.on(Common.EVENT_RECEIVE_SEND_JOB, (data: SerialJobJSON, ack: Function) => { this.receiveSendJob(data, ack); });
-        this.cm.events.on(Common.EVENT_RECEIVE_KILL_JOB, (data: SerialJobJSON, ack: Function) => { this.receiveKillJob(data, ack); });
+        this.cm.events.on(Common.EVENT_RECEIVE_SEND_JOB, (data: SerialJobJSON, onAck: Function) => { this.receiveSendJob(data, onAck); });
+        this.cm.events.on(Common.EVENT_RECEIVE_KILL_JOB, (data: SerialJobJSON, onAck: Function) => { this.receiveKillJob(data, onAck); });
 
         // 実行ジョブマネージャ側のイベント処理登録
         this.ejm.events.on(Common.EVENT_EXEC_ERROR, (job: SerialJobJSON, onAck: Function) => { this.execError(job, onAck); });
@@ -51,21 +51,21 @@ class App {
      * ジョブ受信時の処理です。
      * 処理が正常に開始したらコールバックでtrueを返します。falseの場合はなんらかのエラーが発生しています。
      * @param data 受信したSerialJobJSON
-     * @param ack サーバーに返すAck
+     * @param onAck サーバーに返すAck
      */
-    private receiveSendJob(data: SerialJobJSON, ack: Function): void {
+    private receiveSendJob(data: SerialJobJSON, onAck: Function): void {
         const isStart = this.ejm.putExecJob(data);
-        if (isStart) this.ejm.execJob(data.serial);
-        ack(isStart);
+        if (isStart) this.ejm.execJob(data.serial, data.code);
+        onAck(isStart);
     }
 
     /**
      * ジョブ強制終了受信時の処理です。
      * @param data 受信したSerialJobJSON
-     * @param ack サーバーに返すAck
+     * @param onAck サーバーに返すAck
      */
-    private receiveKillJob(data: SerialJobJSON, ack: Function): void {
-        ack(this.ejm.killJob(data.serial));
+    private receiveKillJob(data: SerialJobJSON, onAck: Function): void {
+        onAck(this.ejm.killJob(data.serial, data.code));
     }
 
     /**

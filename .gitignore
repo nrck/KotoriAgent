@@ -256,3 +256,4 @@ out/
 tool/
 doc/
 config/*.json
+*.pid

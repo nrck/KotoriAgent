@@ -23,16 +23,16 @@ export class ExecJobManager {
      * ExecJobの中からserialに一致するExecJobを返します。
      * @param serial 検索対象のシリアル番号
      */
-    public findExecJob(serial: string): ExecJob | undefined {
-        return this.execJobs.find((execJob: ExecJob) => execJob.serial === serial);
+    public findExecJob(serial: string, jobcode: string): ExecJob | undefined {
+        return this.execJobs.find((execJob: ExecJob) => execJob.serial === serial && execJob.code === jobcode);
     }
 
     /**
      * ExecJobの中にserialに一致するExecJobが存在するか返します。
      * @param serial 検索対象のシリアル番号
      */
-    public isExistExecJob(serial: string): boolean {
-        const execJob = this.findExecJob(serial);
+    public isExistExecJob(serial: string, jobcode: string): boolean {
+        const execJob = this.findExecJob(serial, jobcode);
 
         return typeof execJob !== 'undefined';
     }
@@ -43,7 +43,11 @@ export class ExecJobManager {
      */
     public putExecJob(serialJobJSON: SerialJobJSON): boolean {
         // 既に同じserialのジョブが存在したら追加しない。
-        if (this.isExistExecJob(serialJobJSON.serial)) return false;
+        if (this.isExistExecJob(serialJobJSON.serial, serialJobJSON.code)) {
+            Common.trace(Common.STATE_ERROR, `シリアル：${serialJobJSON.serial}, ジョブコード${serialJobJSON.code}は既に実行中です。`);
+
+            return false;
+        }
 
         // ExecJobの作成
         const job = new ExecJob(serialJobJSON);
@@ -79,8 +83,8 @@ export class ExecJobManager {
      * 対象のジョブを実行します。
      * @param serial 対象のシリアル番号
      */
-    public execJob(serial: string): boolean {
-        const job = this.findExecJob(serial);
+    public execJob(serial: string, jobcode: string): boolean {
+        const job = this.findExecJob(serial, jobcode);
         if (typeof job === 'undefined') return false;
         job.exec();
 
@@ -91,8 +95,8 @@ export class ExecJobManager {
      * 対象のジョブを強制終了します。
      * @param serial 対象のシリアル番号
      */
-    public killJob(serial: string): boolean {
-        const job = this.findExecJob(serial);
+    public killJob(serial: string, jobcode: string): boolean {
+        const job = this.findExecJob(serial, jobcode);
         if (typeof job === 'undefined') return false;
         job.kill();
 
@@ -104,6 +108,10 @@ export class ExecJobManager {
      * @param job 対象のジョブ
      */
     private onExecError(job: SerialJobJSON): void {
+        Common.trace(Common.STATE_INFO, `シリアル：${job.serial}, ジョブコード${job.code}のError情報を送信します。`);
+        Common.trace(Common.STATE_DEBUG, '====SerialJobJSONダンプ====');
+        Common.trace(Common.STATE_DEBUG, JSON.stringify(job, undefined, '  '));
+        Common.trace(Common.STATE_DEBUG, '====SerialJobJSONダンプ====');
         this.events.emit(Common.EVENT_EXEC_ERROR, job, (isSended: boolean) => {
             if (isSended) {
                 Common.trace(Common.STATE_INFO, `シリアル：${job.serial}, ジョブコード${job.code}のError情報送信が受理されました。`);
@@ -121,11 +129,14 @@ export class ExecJobManager {
      * @param stderr エラー出力
      */
     private onExecSuccess(job: SerialJobJSON, stdout: string, stderr: string): void {
-        Common.trace(Common.STATE_DEBUG, 'onExecSuccessが実行されました。');
+        Common.trace(Common.STATE_INFO, `シリアル：${job.serial}, ジョブコード${job.code}のSuccess情報を送信します。`);
+        Common.trace(Common.STATE_DEBUG, '====SerialJobJSONダンプ====');
+        Common.trace(Common.STATE_DEBUG, JSON.stringify(job, undefined, '  '));
+        Common.trace(Common.STATE_DEBUG, '====SerialJobJSONダンプ====');
         this.events.emit(Common.EVENT_EXEC_SUCCESS, job, stdout, stderr, (isSended: boolean) => {
             if (isSended) {
-                this.delExecJob(job.serial);
                 Common.trace(Common.STATE_INFO, `シリアル：${job.serial}, ジョブコード${job.code}のSuccess情報送信が受理されました。`);
+                this.delExecJob(job.serial);
             } else {
                 Common.trace(Common.STATE_ERROR, `シリアル：${job.serial}, ジョブコード${job.code}のSuccess情報送信が受理されませんでした。`);
             }
